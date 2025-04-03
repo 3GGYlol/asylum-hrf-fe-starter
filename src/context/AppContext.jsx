@@ -5,6 +5,8 @@ import { useLocalStorage } from '../hooks/useLocalStorage.js';
 
 const AppContext = createContext({});
 
+const BASE_URL = 'https://hrf-asylum-be-b.herokuapp.com/cases';
+
 /**
  * TODO: Ticket 2:
  * - Use axios to fetch the data
@@ -17,26 +19,50 @@ const useAppContextProvider = () => {
 
   useLocalStorage({ graphData, setGraphData });
 
-  const getFiscalData = () => {
-    // TODO: Replace this with functionality to retrieve the data from the fiscalSummary endpoint
-    const fiscalDataRes = testData;
-    return fiscalDataRes;
-  };
+    // Fetches fiscal summary data from API
+    const getFiscalData = async () => {
+      try {
+        const response = await axios.get(`${BASE_URL}/fiscalSummary`);
+        return response.data;
+      } catch (error) {
+        console.error('Error fetching fiscal data:', error);
+        return testData;
+      }
+    };
 
+  // Fetches citizenship summary data from API
   const getCitizenshipResults = async () => {
-    // TODO: Replace this with functionality to retrieve the data from the citizenshipSummary endpoint
-    const citizenshipRes = testData.citizenshipResults;
-    return citizenshipRes;
+    try {
+      const response = await axios.get(`${BASE_URL}/citizenshipSummary`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching citizenship data:', error);
+      return testData.citizenshipResults;
+    }
   };
 
   const updateQuery = async () => {
     setIsDataLoading(true);
   };
 
+   // fetches all the data and sets it to the graphData state
   const fetchData = async () => {
-    // TODO: fetch all the required data and set it to the graphData state
+    try {
+      const [fiscalData, citizenshipData] = await Promise.all([getFiscalData(), getCitizenshipResults()]);
+      
+      setGraphData({
+        ...fiscalData,
+        citizenshipResults: citizenshipData,
+      });
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setGraphData(testData);
+    } finally {
+      setIsDataLoading(false);
+    }
   };
 
+  // Clears the graphData state
   const clearQuery = () => {
     setGraphData({});
   };
