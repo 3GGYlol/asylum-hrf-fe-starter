@@ -83,7 +83,7 @@ const useAppContextProvider = () => {
     clearQuery,
     getYears,
   };
-};
+}; 
 
 export function useAppContext() {
   return useContext(AppContext);
